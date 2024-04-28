@@ -21,11 +21,10 @@
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 import Settings from './settings';
-import {SmartLock} from './smartlock';
+import SmartLock from './smartlock';
+import Indicator from './indicator';
 
 const Me = ExtensionUtils.getCurrentExtension();
-const {SmartLock} = Me.imports.smartlock;
-const {Indicator} = Me.imports.indicator;
 
 class Extension {
     constructor(uuid) {

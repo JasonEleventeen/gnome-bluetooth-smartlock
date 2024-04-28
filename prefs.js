@@ -1,15 +1,17 @@
 'use strict';
+import {domain} from 'gettext';
 
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 
 import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
+import Settings from './settings';
+
 // It's common practice to keep GNOME API and JS imports in separate blocks
 const Me = ExtensionUtils.getCurrentExtension();
-const {Settings} = Me.imports.settings;
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const _ = Gettext.gettext;
+
+const {gettext: _} = domain(Me.metadata['gettext-domain']);
 /**
  * Steps to run on initialization of preferenences dialog
  */
