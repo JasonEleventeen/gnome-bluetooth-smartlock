@@ -1,16 +1,16 @@
-const {GObject, St} = imports.gi;
+import {domain} from 'gettext';
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Gio from 'gi://Gio';
+import GnomeBluetooth from "gi://GnomeBluetooth";
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
-const Gio = imports.gi.Gio;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-const ExtensionUtils = imports.misc.extensionUtils;
-const GnomeBluetooth = imports.gi.GnomeBluetooth;
+import Settings from './settings';
 
 const Me = ExtensionUtils.getCurrentExtension();
-const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
-const {Settings} = Me.imports.settings;
-const _ = Gettext.gettext;
-
+const {gettext: _} = domain(Me.metadata['gettext-domain']);
 
 // eslint-disable-next-line no-unused-vars
 var Indicator = GObject.registerClass(
@@ -67,3 +67,5 @@ var Indicator = GObject.registerClass(
             }
         }
     });
+
+export default Indicator

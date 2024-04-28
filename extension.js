@@ -18,11 +18,12 @@
 
 /* exported init */
 
-const Main = imports.ui.main;
-const ExtensionUtils = imports.misc.extensionUtils;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import Settings from './settings';
+import {SmartLock} from './smartlock';
 
 const Me = ExtensionUtils.getCurrentExtension();
-const {Settings} = Me.imports.settings;
 const {SmartLock} = Me.imports.smartlock;
 const {Indicator} = Me.imports.indicator;
 

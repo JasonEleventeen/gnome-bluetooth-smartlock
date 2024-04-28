@@ -1,6 +1,6 @@
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
+const Me = ExtensionUtils.getCurrentExtension();
 
 const SCAN_INTERVAL_KEY = 'interval';
 const ACTIVE_KEY = 'active';
@@ -55,3 +55,5 @@ var Settings = class Settings {
             this._settings.set_string(DEVICE_MAC_KEY, device);
     }
 };
+
+export default Settings;

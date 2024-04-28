@@ -1,10 +1,11 @@
 'use strict';
 
-const Gio = imports.gi.Gio;
-const Gtk = imports.gi.Gtk;
+import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk';
+
+import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
 // It's common practice to keep GNOME API and JS imports in separate blocks
-const ExtensionUtils = imports.misc.extensionUtils;
 const Me = ExtensionUtils.getCurrentExtension();
 const {Settings} = Me.imports.settings;
 const Gettext = imports.gettext.domain(Me.metadata['gettext-domain']);
