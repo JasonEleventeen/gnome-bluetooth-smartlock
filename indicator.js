@@ -1,18 +1,12 @@
-import {domain} from 'gettext';
+import {gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Gio from 'gi://Gio';
-import GnomeBluetooth from "gi://GnomeBluetooth";
+import GnomeBluetooth from 'gi://GnomeBluetooth';
 import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
-
 import Settings from './settings.js';
 
-const Me = ExtensionUtils.getCurrentExtension();
-const {gettext: _} = domain(Me.metadata['gettext-domain']);
-
-// eslint-disable-next-line no-unused-vars
 var Indicator = GObject.registerClass(
     class Indicator extends PanelMenu.Button {
         _init() {
@@ -23,7 +17,7 @@ var Indicator = GObject.registerClass(
             let interfaceSettings = new Gio.Settings({schema_id: 'org.gnome.desktop.interface'});
             let iconScheme = interfaceSettings.get_string('color-scheme') === 'prefer-dark' ? 'white' : 'black';
             let icon = new St.Icon({style_class: 'system-status-icon'});
-            icon.gicon = Gio.icon_new_for_string(`${Me.path}/icons/smartlock-${iconScheme}.svg`);
+            icon.gicon = Gio.icon_new_for_string(`${Extension.path}/icons/smartlock-${iconScheme}.svg`);
             this.add_child(icon);
 
             let activeMenu = new PopupMenu.PopupSwitchMenuItem(_('Active'), this._settings.getActive());
@@ -46,7 +40,7 @@ var Indicator = GObject.registerClass(
             let icon = new Gio.ThemedIcon({name: 'emblem-system-symbolic'});
             let settingsMenu = new PopupMenu.PopupImageMenuItem(_('Settings'), icon);
             settingsMenu.connect('activate', () => {
-                ExtensionUtils.openPrefs();
+                this.extension.openPreferences();
             });
             this.menu.addMenuItem(settingsMenu);
 
@@ -68,4 +62,4 @@ var Indicator = GObject.registerClass(
         }
     });
 
-export default Indicator
+export default Indicator;

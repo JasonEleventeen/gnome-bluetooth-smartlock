@@ -1,6 +1,6 @@
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import Gio from 'gi://Gio';
 
-const Me = ExtensionUtils.getCurrentExtension();
+import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const SCAN_INTERVAL_KEY = 'interval';
 const ACTIVE_KEY = 'active';
@@ -8,10 +8,39 @@ const AWAY_DURATION = 'duration-in-seconds';
 const HIDE_INDICATOR_KEY = 'indicator';
 const DEVICE_MAC_KEY = 'mac';
 
-// eslint-disable-next-line no-unused-vars
-var Settings = class Settings {
+function getSettings(schema, path) {
+    const extension = ExtensionPreferences.lookupByURL(import.meta.url);
+    const schemaDir = extension.dir.get_child('schemas');
+    let schemaSource;
+    if (schemaDir.query_exists(null)) {
+        schemaSource = Gio.SettingsSchemaSource.new_from_directory(
+            schemaDir.get_path(),
+            Gio.SettingsSchemaSource.get_default(),
+            false
+        );  
+    } else {
+        schemaSource = Gio.SettingsSchemaSource.get_default();
+    }   
+            
+    const schemaObj = schemaSource.lookup(schema, true);
+    if (!schemaObj) {
+        log(    
+            `Schema ${schema} could not be found for extension ${
+                extension.metadata.uuid}. Please check your installation.`
+        );
+        return null;
+    }
+
+    const args = {settings_schema: schemaObj};
+    if (path)
+        args.path = path;
+
+    return new Gio.Settings(args);
+}
+
+export default class Settings {
     constructor() {
-        this._settings = ExtensionUtils.getSettings(Me.metadata['settings-schema']);
+        this._settings = getSettings("org.gnome.shell.extensions.bluetooth_smartlock");
     }
 
     getScanInterval() {
@@ -54,6 +83,4 @@ var Settings = class Settings {
         if (device !== this.getDevice())
             this._settings.set_string(DEVICE_MAC_KEY, device);
     }
-};
-
-export default Settings;
+}

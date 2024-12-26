@@ -1,34 +1,28 @@
-'use strict';
-import {domain} from 'gettext';
-
+import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import GLib from 'gi://GLib';
 import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
-
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import {gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 import Settings from './settings.js';
 
-// It's common practice to keep GNOME API and JS imports in separate blocks
-const Me = ExtensionUtils.getCurrentExtension();
-
-const {gettext: _} = domain(Me.metadata['gettext-domain']);
-/**
- * Steps to run on initialization of preferenences dialog
- */
-// eslint-disable-next-line no-unused-vars
-function init() {
-    log(`[bluetooth-smartlock] Initializing ${Me.metadata.name} Preferences`);
-    ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
+export default class BluetoothSmartLockPreferences extends ExtensionPreferences {
+    fillPreferencesWindow(window) {
+        const settings = new SettingsBuilder(this.metadata);
+        const widget = settings.build();
+        window.add(widget);
+    }
 }
 
 class SettingsBuilder {
-    constructor() {
+    constructor(metadata) {
         this._settings = new Settings()._settings;
         this._builder = new Gtk.Builder();
+        this._metadata = metadata;
     }
 
     build() {
-        this._builder.add_from_file(`${Me.path}/settings.ui`);
+        this._builder.add_from_file(GLib.build_filenamev([this._metadata.path, 'settings.ui']));
         this._container = this._builder.get_object('container');
         this._builder.get_object('advanced_button').connect('clicked', () => {
             let dialog = new Gtk.Dialog({
@@ -52,18 +46,6 @@ class SettingsBuilder {
         this._settings.bind('interval', this._builder.get_object('scan_interval'), 'value', Gio.SettingsBindFlags.DEFAULT);
         this._settings.bind('duration-in-seconds', this._builder.get_object('duration'), 'value', Gio.SettingsBindFlags.DEFAULT);
 
-
         return this._container;
     }
-}
-
-/**
- * Build prefernces widget
- */
-// eslint-disable-next-line no-unused-vars
-function buildPrefsWidget() {
-    let settings = new SettingsBuilder();
-    let widget = settings.build();
-
-    return widget;
 }

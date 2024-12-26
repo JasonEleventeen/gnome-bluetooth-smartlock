@@ -2,11 +2,8 @@ import GnomeBluetooth from "gi://GnomeBluetooth";
 import GLib from 'gi://GLib';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
-
-const Me = ExtensionUtils.getCurrentExtension();
-const {Settings} = Me.imports.settings;
+import Settings from './settings.js';
 
 // eslint-disable-next-line no-unused-vars
 var SmartLock = class SmartLock {

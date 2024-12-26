@@ -18,35 +18,27 @@
 
 /* exported init */
 
+import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
+import Gio from 'gi://Gio';
 import Settings from './settings.js';
 import SmartLock from './smartlock.js';
 import Indicator from './indicator.js';
 
-const Me = ExtensionUtils.getCurrentExtension();
-
-class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
-        this._indicatorChangeHandlerId = 0;
-    }
-
+export default class BluetoothSmartLockExtension extends Extension {
     enable() {
         this._indicator = new Indicator();
         this._settings = new Settings();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
+        Main.panel.addToStatusArea(this.uuid, this._indicator);
 
-        // Set default state when extension enabled
         if (this._settings.getHideIndicator())
-            Main.panel.statusArea[this._uuid].hide();
+            Main.panel.statusArea[this.uuid].hide();
 
-        // Listen for indicator setting change
         this._indicatorChangeSignal = this._settings._settings.connect('changed::indicator', () => {
             if (this._settings.getHideIndicator())
-                Main.panel.statusArea[this._uuid].hide();
+                Main.panel.statusArea[this.uuid].hide();
             else
-                Main.panel.statusArea[this._uuid].show();
+                Main.panel.statusArea[this.uuid].show();
         });
 
         this._smartLock = new SmartLock();
@@ -57,22 +49,12 @@ class Extension {
         this._indicator.destroy();
         this._indicator = null;
 
-        if (this._indicatorChangeHandlerId)
-            this._settings._settings.disconnect(this._indicatorChangeHandlerId);
+        if (this._indicatorChangeSignal)
+            this._settings._settings.disconnect(this._indicatorChangeSignal);
 
         this._settings = null;
 
         this._smartLock.disable();
         this._smartLock = null;
     }
-}
-
-/**
- * Steps to run on initialization of the extension
- *
- * @param {Extension} meta The extension
- */
-function init(meta) {
-    ExtensionUtils.initTranslations(Me.metadata['gettext-domain']);
-    return new Extension(meta.uuid);
 }
