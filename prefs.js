@@ -6,7 +6,7 @@ import Gtk from 'gi://Gtk';
 
 import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
-import Settings from './settings';
+import Settings from './settings.js';
 
 // It's common practice to keep GNOME API and JS imports in separate blocks
 const Me = ExtensionUtils.getCurrentExtension();

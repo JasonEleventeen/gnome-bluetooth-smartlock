@@ -7,7 +7,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
-import Settings from './settings';
+import Settings from './settings.js';
 
 const Me = ExtensionUtils.getCurrentExtension();
 const {gettext: _} = domain(Me.metadata['gettext-domain']);

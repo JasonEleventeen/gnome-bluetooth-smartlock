@@ -20,9 +20,9 @@
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as ExtensionUtils from 'resource:///org/gnome/shell/misc/extensionUtils.js';
-import Settings from './settings';
-import SmartLock from './smartlock';
-import Indicator from './indicator';
+import Settings from './settings.js';
+import SmartLock from './smartlock.js';
+import Indicator from './indicator.js';
 
 const Me = ExtensionUtils.getCurrentExtension();
 
