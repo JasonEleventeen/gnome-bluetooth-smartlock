@@ -15,7 +15,7 @@ class SmartlockIndicatorClass extends PanelMenu.Button { // Use a temporary name
     }
 
     init(extension, settings){
-      this._extension = extension;
+        this._extension = extension;
         this._client = new GnomeBluetooth.Client();
         this._settings = settings; // Pass settings directly
 

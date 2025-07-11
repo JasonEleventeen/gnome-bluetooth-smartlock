@@ -6,37 +6,8 @@ const AWAY_DURATION = 'duration-in-seconds';
 const HIDE_INDICATOR_KEY = 'indicator';
 const DEVICE_MAC_KEY = 'mac';
 
-function getSettings(schema, extensionDir, path) {
-    let schemaSource;
-    if (extensionDir) {
-        const schemaDir = Gio.File.new_for_path(`${extensionDir}/schemas`);
-        if (schemaDir.query_exists(null)) {
-            schemaSource = Gio.SettingsSchemaSource.new_from_directory(
-                schemaDir.get_path(),
-                Gio.SettingsSchemaSource.get_default(),
-                false
-            );
-        }
-    }
-    if (!schemaSource) {
-        schemaSource = Gio.SettingsSchemaSource.get_default();
-    }
-
-    const schemaObj = schemaSource.lookup(schema, true);
-    if (!schemaObj) {
-        console.error(`Schema ${schema} could not be found. Please check your installation.`);
-        return null;
-    }
-
-    const args = { settings_schema: schemaObj };
-    if (path)
-        args.path = path;
-
-    return new Gio.Settings(args);
-}
-
-export default class Settings {
-    constructor(settings) {
+class Settings {
+    init(settings) {
         this._settings = settings;
     }
 
@@ -76,3 +47,6 @@ export default class Settings {
             this._settings.set_string(DEVICE_MAC_KEY, device);
     }
 }
+
+const settings = new Settings();
+export default settings;

@@ -33,7 +33,9 @@ export default class BluetoothSmartLockExtension extends Extension {
 
 
     enable() {
-        this._settings = new Settings(this.getSettings());
+        this._settings = Settings;
+        this._settings.init(this.getSettings());
+
         this._indicator = new Indicator();
         this._indicator.init(this, this._settings);
         
