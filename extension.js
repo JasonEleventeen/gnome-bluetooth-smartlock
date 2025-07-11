@@ -26,9 +26,17 @@ import SmartLock from './smartlock.js';
 import Indicator from './indicator.js';
 
 export default class BluetoothSmartLockExtension extends Extension {
+    constructor(metadata) {
+        super(metadata); 
+        this.metadata = metadata;
+    }
+
+
     enable() {
+        this._settings = new Settings(this.getSettings());
         this._indicator = new Indicator();
-        this._settings = new Settings();
+        this._indicator.init(this, this._settings);
+        
         Main.panel.addToStatusArea(this.uuid, this._indicator);
 
         if (this._settings.getHideIndicator())
@@ -41,7 +49,7 @@ export default class BluetoothSmartLockExtension extends Extension {
                 Main.panel.statusArea[this.uuid].show();
         });
 
-        this._smartLock = new SmartLock();
+        this._smartLock = new SmartLock(this._settings);
         this._smartLock.enable();
     }
 

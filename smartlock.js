@@ -7,9 +7,9 @@ import Settings from './settings.js';
 
 // eslint-disable-next-line no-unused-vars
 var SmartLock = class SmartLock {
-    constructor() {
+    constructor(settings) {
         this._client = new GnomeBluetooth.Client();
-        this._settings = new Settings();
+        this._settings = settings;
         this._deviceAddress = null;
         this._deviceChangeHandlerId = 0;
         this._lastSeen = 0;
