@@ -1,113 +1,89 @@
-import GnomeBluetooth from "gi://GnomeBluetooth";
 import GLib from 'gi://GLib';
-
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-
-import Settings from './settings.js';
+import dbus from "./dbus.js";
 
 // eslint-disable-next-line no-unused-vars
-var SmartLock = class SmartLock {
+const SmartLock = class SmartLock {
     constructor(settings) {
-        this._client = new GnomeBluetooth.Client();
-        this._settings = settings;
-        this._deviceAddress = null;
-        this._deviceChangeHandlerId = 0;
+
+        this._settings = settings
         this._lastSeen = 0;
+
+        this._dbusSubscriptionId = null;
+        this._lockTimeoutId = null;
     }
 
     _log(message) {
-        log(`[bluetooth-smartlock] ${message}`);
-    }
-
-    _runLoop() {
-        const interval = this._settings.getScanInterval();
-        this.scan();
-        this._loop = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, interval, this._runLoop.bind(this));
+        log(`[gnome-bluetooth-smartlock@eleventeen] ${message}`);
     }
 
     lock_screen() {
-        Main.overview.hide();
-        Main.screenShield.lock(true);
+        if (!Main.screenShield._locked) {
+            Main.overview.hide();
+            Main.screenShield.lock(true);
+        }
     }
 
-    enable() {
+    async enable() {
         this._log('Enabling extension');
 
-        this._deviceAddress = this._settings.getDevice();
+        dbus.poll((device) => this._checkDevice(device), this._settings.getScanInterval());
 
-        this._deviceChangeHandlerId = this._settings._settings.connect('changed::mac', () => {
-            // reset last seen when device changed
-            if (this._deviceAddress !== this._settings.getDevice()) {
-                this._log('Device changed');
-                this._deviceAddress = this._settings.getDevice();
+        this._log('Subscribing to D-Bus signals poll:' + this._settings.getScanInterval());
+
+        let devices = await dbus.getDevices();
+        for (const device of devices) {
+            this._checkDevice(device);
+        }
+    }
+
+    _checkDevice(device) {
+
+        if (device.address !== this._settings.getDevice()) {
+            this._log(`BT -> Device ${device.name} [${device.address}] is not the target device ${this._settings.getDevice()}, ignoring.`);
+            return;
+        }
+
+        if (device.visible) {
+            this._log(`BT -> Device ${device.name} [${device.address}] is visible, resetting last seen time.`);
+            this._lastSeen = new Date().getTime();
+            this._clearLockTimeout();
+            return;
+        }
+
+        let duration = this._settings.getAwayDuration() || 60; // Default to 60 seconds if not set
+
+        this._log(`BT -> Device ${device.address} is not visible, starting timer for ${device.duration} seconds.`);
+        this._lockTimeoutId = GLib.timeout_add_seconds(
+            GLib.PRIORITY_DEFAULT,
+            duration,   // delay in seconds before locking
+            () => {
+                this._lockTimeoutId = null;
                 this._lastSeen = 0;
-            }
-        });
+                this._log(`User stepped away for ${duration} seconds, locking the screen`);
+                this.lock_screen();
 
-        this._runLoop();
+                // Clear the timeout to prevent it from running again
+                return GLib.SOURCE_REMOVE;
+            }
+        );
+    }
+
+    _clearLockTimeout() {
+        if (this._lockTimeoutId) {
+            GLib.source_remove(this._lockTimeoutId);
+            this._lockTimeoutId = null;
+        }
     }
 
     disable() {
+        this._clearLockTimeout()
+
         this._log('Disabling extension');
 
-        this._deviceAddress = null;
         this._lastSeen = 0;
 
-        if (this._deviceChangeHandlerId)
-            this._settings._settings.disconnect(this._deviceChangeHandlerId);
-
-        if (this._loop) {
-            GLib.source_remove(this._loop);
-            this._loop = null;
-        }
-    }
-
-    connect(device) {
-        this._client.connect_service(device.get_object_path(), true, null, (sourceObject, res) => {
-            try {
-                if (this._client.connect_service_finish(res)) {
-                    this._log('Connected to device');
-                    this._lastSeen = new Date().getTime();
-                }
-            } catch (error) {
-                this._log(`Error: ${error}`);
-            }
-        });
-    }
-
-    scan() {
-        // If not active, do nothing
-        if (!this._settings.getActive() || this._deviceAddress === '')
-            return;
-
-        try {
-            let store = this._client.get_devices();
-            let nIitems = store.get_n_items();
-            for (let i = 0; i < nIitems; i++) {
-                let device = store.get_item(i);
-                if (device.address === this._deviceAddress) {
-                    let now = new Date().getTime();
-                    if (!device.connected) {
-                        // Only check for timeout if  we ever seen device once
-                        if (this._lastSeen !== 0) {
-                            let duration = (now - this._lastSeen) / 1000;
-                            if (duration >= this._settings.getAwayDuration()) {
-                                this._lastSeen = 0;
-                                this._log(`User stepped away for ${duration} seconds, locking the screen`);
-                                this.lock_screen();
-                            }
-                        }
-                        // Try to connect to target device, cause Linux wont auto reconnect on some devices like smart phones
-                        this.connect(device);
-                    } else {
-                        this._lastSeen = now;
-                    }
-                    break;
-                }
-            }
-        } catch (error) {
-            this._log(`Error: ${error}`);
-        }
+        dbus.disconnect();
     }
 };
 
