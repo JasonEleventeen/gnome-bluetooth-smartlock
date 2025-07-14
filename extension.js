@@ -31,8 +31,7 @@ export default class BluetoothSmartLockExtension extends Extension {
         this.metadata = metadata;
     }
 
-
-    enable() {
+    async enable() {
         this._settings = Settings;
         this._settings.init(this.getSettings());
 
@@ -44,15 +43,18 @@ export default class BluetoothSmartLockExtension extends Extension {
         if (this._settings.getHideIndicator())
             Main.panel.statusArea[this.uuid].hide();
 
-        this._indicatorChangeSignal = this._settings._settings.connect('changed::indicator', () => {
-            if (this._settings.getHideIndicator())
+        this._indicatorChangeSignal = this._settings.connectIndicatorChangeSignal((hide) => {
+            if (hide)
                 Main.panel.statusArea[this.uuid].hide();
             else
                 Main.panel.statusArea[this.uuid].show();
         });
 
         this._smartLock = new SmartLock(this._settings);
-        this._smartLock.enable();
+        await this._smartLock.enable();
+        
+        this._settings.connectDeviceChangeSignal(async () => await this._smartLock.checkNow());
+
     }
 
     disable() {
@@ -60,7 +62,7 @@ export default class BluetoothSmartLockExtension extends Extension {
         this._indicator = null;
 
         if (this._indicatorChangeSignal)
-            this._settings._settings.disconnect(this._indicatorChangeSignal);
+            this._settings.disconnect(this._indicatorChangeSignal);
 
         this._settings = null;
 

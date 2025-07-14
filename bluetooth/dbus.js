@@ -34,13 +34,15 @@ function getDevices() {
                     let address = dev.Address?.deep_unpack?.() || 'No address';
                     let connected = dev.Connected?.deep_unpack?.() ?? false;
                     let rssi = dev.RSSI?.deep_unpack?.();
+                    let paired = dev.Paired?.deep_unpack?.() ?? false;
 
                     let device = {
-                        address: address,
-                        name: name,
-                        connected: connected,
-                        rssi: rssi,
-                        visible: true
+                        address,
+                        name,
+                        connected,
+                        rssi,
+                        visible: true,
+                        paired
                     };
 
                     devices.push(device);
@@ -94,6 +96,7 @@ function subscribe(cb) {
             let rssi = changedProps['RSSI']?.deep_unpack?.(); // RSSI might not be present, handle it gracefully
 
             let device = {
+                name: allDevices[address]?.name || 'Unnamed',
                 address: address,
                 connected: isConnected,
                 rssi: rssi,
@@ -146,43 +149,10 @@ function disconnect() {
         DBus.system.signal_unsubscribe(signalSubscribeInterfacesRemovedId);
         signalSubscribeInterfacesRemovedId = null;
     }
-
-    if (btPollTimeoutId) {
-        GLib.source_remove(btPollTimeoutId);
-        btPollTimeoutId = null;
-    }
-}
-
-/**
- * Poll for Bluetooth devices at regular intervals.
- * @param {*} cb 
- * @param {*} seconds 
- */
-function poll(cb, seconds = 60) {
-    disconnect() 
-    btPollTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, seconds, async () => {
-
-        if (pollLock) {
-            return GLib.SOURCE_CONTINUE; // Prevent re-entrancy
-        }
-        pollLock = true;
-        try{
-            const devices = await getDevices();
-            for (const device of devices) {
-                cb(device);
-            }
-        }catch (error) {
-            log(`!!!!!!! Error polling Bluetooth devices: ${error}`);
-        }
-
-        pollLock = false; // Release the lock after processing
-        return GLib.SOURCE_CONTINUE;
-    });
 }
 
 export default {
     getDevices,
     subscribe,
-    disconnect,
-    poll
+    disconnect
 };
